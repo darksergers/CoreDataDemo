@@ -1,7 +1,6 @@
 //
 //  TableViewController.swift
 //  CoreDataDemo
-//
 //  Created by Serg Kalinin on 15/11/2017.
 //  Copyright © 2017 Serg Kalinin. All rights reserved.
 //
