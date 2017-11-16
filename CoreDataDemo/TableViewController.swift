@@ -6,16 +6,17 @@
 //
 
 import UIKit
+import CoreData
 
 class TableViewController: UITableViewController {
     
-    var toDoItems: [String] = []
+    var toDoItems: [Task] = []
     
     @IBAction func addTask(_ sender: UIBarButtonItem) {
         let ac = UIAlertController(title: "Add Task", message: "add new task", preferredStyle: .alert)
         let ok = UIAlertAction(title: "Ok", style: .default){
             action in let textField = ac.textFields?[0]
-            self.toDoItems.insert((textField?.text)!, at: 0)
+            self.saveTask(taskToDo:(textField?.text)!)
             self.tableView.reloadData()
         }
         let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
@@ -24,7 +25,17 @@ class TableViewController: UITableViewController {
         }
         ac.addAction(ok)
         ac.addAction(cancel)
-        //
+        present(ac, animated: true, completion: nil)
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        let appDelegete = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegete.persistentContainer.viewContext
+        let fetchRequest: NSFetchRequest<Task> = Task.fetchRequest()
+        do{
+            toDoItems = try context.fetch(fetchRequest)
+        }catch{
+            print(error.localizedDescription)
+        }
     }
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,14 +61,15 @@ class TableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return 0
+        return toDoItems.count
     }
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-
-        cell.textLabel?.text = toDoItems[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) 
+        
+        
+        cell.textLabel?.text = toDoItems[indexPath.row].taskToDo
 
         return cell
     }
@@ -107,5 +119,18 @@ class TableViewController: UITableViewController {
         // Pass the selected object to the new view controller.
     }
     */
-
+    func saveTask(taskToDo:String){
+        let appDelegete = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegete.persistentContainer.viewContext
+        let entity = NSEntityDescription.entity(forEntityName: "Task", in: context)
+        let taskObject = NSManagedObject(entity: entity!, insertInto: context) as! Task
+        taskObject.taskToDo = taskToDo
+        do {
+            try context.save()
+            toDoItems.append(taskObject)
+            print("save task")
+        }catch {
+            print(error.localizedDescription)
+        }
+    }
 }
